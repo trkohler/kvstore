@@ -21,17 +21,22 @@ struct Database {
 
 impl Database {
     fn new() -> Result<Database, std::io::Error> {
-        let contents = std::fs::read_to_string("kv.db")?;
+        let contents = match std::fs::read_to_string("kv.db") {
+            Ok(content) => content,
+            Err(_) => String::new(),
+        };
         let mut inner = HashMap::new();
 
-        for line in contents.lines() {
-            let chunks: Vec<&str> = line.split("\t").collect();
-            if chunks.len() != 2 {
-                todo!("Return error")
+        if !contents.is_empty() {
+            for line in contents.lines() {
+                let chunks: Vec<&str> = line.split("\t").collect();
+                if chunks.len() != 2 {
+                    todo!("Return error")
+                }
+                let key = chunks[0];
+                let value = chunks[1];
+                inner.insert(key.to_owned(), value.to_owned());
             }
-            let key = chunks[0];
-            let value = chunks[1];
-            inner.insert(key.to_owned(), value.to_owned());
         }
 
         Ok(Database { inner })
