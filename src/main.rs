@@ -1,6 +1,9 @@
+use env_logger;
+use log;
 use std::collections::HashMap;
 
 fn main() -> Result<(), std::io::Error> {
+    env_logger::init();
     let mut args = std::env::args().skip(1);
     let key = args.next().unwrap();
     let value = args.next().unwrap();
@@ -23,7 +26,10 @@ impl Database {
     fn new() -> Result<Database, std::io::Error> {
         let contents = match std::fs::read_to_string("kv.db") {
             Ok(content) => content,
-            Err(_) => String::new(),
+            Err(_) => {
+                log::info!("Can't found path, creating new kv.db");
+                String::new()
+            }
         };
         let mut inner = HashMap::new();
 
@@ -31,7 +37,7 @@ impl Database {
             for line in contents.lines() {
                 let chunks: Vec<&str> = line.split("\t").collect();
                 if chunks.len() != 2 {
-                    todo!("Return error")
+                    log::warn!("Database might be corrupted.")
                 }
                 let key = chunks[0];
                 let value = chunks[1];
